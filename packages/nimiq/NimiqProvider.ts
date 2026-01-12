@@ -18,4 +18,21 @@ export class NimiqProvider
   getNetwork(): string {
     return NimiqProvider.NETWORK;
   }
+
+  async request(args: { method: string; params?: any[] }): Promise<any> {
+    // Normalize method names (these are the names sent to the native app)
+    switch (args.method) {
+      case 'nim_requestAccounts':
+        args.method = 'requestAccounts';
+        break;
+      case 'nim_isConsensusEstablished':
+        args.method = 'isConsensusEstablished';
+        break;
+      // Add more method normalizations if needed
+      default:
+        throw new Error(`Unsupported method: ${args.method}`);
+    }
+
+    return super.request(args);
+  }
 }

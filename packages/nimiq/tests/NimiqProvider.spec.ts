@@ -14,9 +14,12 @@ afterEach(() => {
 test('Nimiq Awesome test', async () => {
   new Web3Provider({
     strategy: AdapterStrategy.PROMISES,
-    handler: () => Promise.resolve([account]),
+    handler: (request) => {
+      expect(request.name).toBe('requestAccounts'); // Normalized method name
+      return Promise.resolve([account])
+    },
   }).registerProvider(Nimiq);
 
-  const accounts = await Nimiq.request({ method: 'test_method' });
+  const accounts = await Nimiq.request({ method: 'nim_requestAccounts' });
   expect(accounts).toEqual([account]);
 });
