@@ -43,17 +43,42 @@ export class NimiqProvider
 {
   static NETWORK = 'nimiq';
 
+  #accounts: string[] | undefined;
+
   constructor(config?: INimiqProviderConfig) {
     super();
-    // Your constructor logic here for setting config
+  }
+
+  async connect() {
+    await this.listAccounts();
+  }
+
+  disconnect() {
+    this.#accounts = undefined;
+    this.emit('disconnect');
   }
 
   getNetwork(): string {
     return NimiqProvider.NETWORK;
   }
 
-  listAccounts(): Promise<string[] | ErrorResponse> {
-    return this.#internalRequest<string[]>({ method: 'listAccounts' });
+  get connected(): boolean {
+    return this.#accounts !== undefined;
+  }
+
+  async listAccounts(): Promise<string[] | ErrorResponse> {
+    if (this.#accounts) {
+      return Promise.resolve(this.#accounts);
+    }
+    const accounts = await this.#internalRequest<string[] | ErrorResponse>({ method: 'listAccounts' });
+    if ('error' in accounts) {
+      return accounts;
+    }
+    if (!this.#accounts) {
+      this.emit('connect');
+    }
+    this.#accounts = accounts;
+    return accounts;
   }
 
   sign(message: string | { message: string, isHex?: boolean }): Promise<SignatureResult | ErrorResponse> {
@@ -82,7 +107,7 @@ export class NimiqProvider
     fee?: number,
     validityStartHeight?: number,
   }): Promise<string | ErrorResponse> {
-    return this.#internalRequest<string>({
+    return this.#internalRequest<string | ErrorResponse>({
       method: 'sendBasicTransaction',
       params: tx,
     });
@@ -100,7 +125,7 @@ export class NimiqProvider
     data: string,
     validityStartHeight?: number,
   }): Promise<string | ErrorResponse> {
-    return this.#internalRequest<string>({
+    return this.#internalRequest<string | ErrorResponse>({
       method: 'sendBasicTransactionWithData',
       params: tx,
     });
