@@ -131,6 +131,74 @@ export class NimiqProvider
     });
   }
 
+  sendNewStakerTransaction(tx: {
+    delegation: string,
+    value: number,
+    fee?: number,
+    validityStartHeight?: number,
+  }): Promise<string | ErrorResponse> {
+    return this.#internalRequest<string | ErrorResponse>({
+      method: 'sendNewStakerTransaction',
+      params: tx,
+    });
+  }
+
+  sendStakeTransaction(tx: {
+    value: number,
+    fee?: number,
+    validityStartHeight?: number,
+  }): Promise<string | ErrorResponse> {
+    return this.#internalRequest<string | ErrorResponse>({
+      method: 'sendStakeTransaction',
+      params: tx,
+    });
+  }
+
+  sendSetActiveStakeTransaction(tx: {
+    newActiveBalance: number,
+    fee?: number,
+    validityStartHeight?: number,
+  }): Promise<string | ErrorResponse> {
+    return this.#internalRequest<string | ErrorResponse>({
+      method: 'sendSetActiveStakeTransaction',
+      params: tx,
+    });
+  }
+
+  sendUpdateStakerTransaction(tx: {
+    newDelegation: string,
+    reactivateAllStake?: boolean,
+    fee?: number,
+    validityStartHeight?: number,
+  }): Promise<string | ErrorResponse> {
+    return this.#internalRequest<string | ErrorResponse>({
+      method: 'sendUpdateStakerTransaction',
+      params: tx,
+    });
+  }
+
+  sendRetireStakeTransaction(tx: {
+    retireStake: number,
+    fee?: number,
+    validityStartHeight?: number,
+  }): Promise<string | ErrorResponse> {
+    return this.#internalRequest<string | ErrorResponse>({
+      method: 'sendRetireStakeTransaction',
+      params: tx,
+    });
+  }
+
+  sendRemoveStakeTransaction(tx: {
+    value: number,
+    fee?: number,
+    validityStartHeight?: number,
+  }): Promise<string | ErrorResponse> {
+    return this.#internalRequest<string | ErrorResponse>({
+      method: 'sendRemoveStakeTransaction',
+      params: tx,
+    });
+  }
+
   // TODO: Add other transaction creation types
 
   /**
