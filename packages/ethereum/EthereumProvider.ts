@@ -6,12 +6,11 @@ import { BaseProvider } from '@trustwallet/web3-provider-core';
 import type { IEthereumProviderConfig } from './types/EthereumProvider';
 import { RPCError } from './exceptions/RPCError';
 import { MobileAdapter } from './MobileAdapter';
-import { RPCServer } from './RPCServer';
+import { RPCServer, RpcCallHandler } from './RPCServer';
 
 export class EthereumProvider
   extends BaseProvider
-  implements IEthereumProvider
-{
+  implements IEthereumProvider {
   static NETWORK = 'ethereum';
 
   // should be hex
@@ -22,6 +21,8 @@ export class EthereumProvider
   #disableMobileAdapter: boolean = false;
 
   #overwriteMetamask = false;
+
+  #rpcCallHandler?: RpcCallHandler;
 
   #address!: string;
 
@@ -46,6 +47,7 @@ export class EthereumProvider
 
       if (config.rpc || config.rpcUrl) {
         this.#rpcUrl = config.rpc || config.rpcUrl!;
+        this.#rpcCallHandler = this.createRpcCallHandler();
       }
 
       if (typeof config.overwriteMetamask !== 'undefined') {
@@ -61,7 +63,7 @@ export class EthereumProvider
         this.isTrustWallet = config.isTrust;
       }
 
-      this.#rpc = new RPCServer(this.#rpcUrl);
+      this.#rpc = new RPCServer(this.#rpcUrl, this.#rpcCallHandler);
     }
 
     if (!this.#disableMobileAdapter) {
@@ -292,7 +294,7 @@ export class EthereumProvider
 
   public setRPCUrl(rpcUrl: string) {
     this.#rpcUrl = rpcUrl;
-    this.#rpc = new RPCServer(this.#rpcUrl);
+    this.#rpc = new RPCServer(this.#rpcUrl, this.#rpcCallHandler);
   }
 
   public getRPC() {
@@ -313,5 +315,21 @@ export class EthereumProvider
 
   setRPC(rpc: any) {
     this.#rpc = rpc;
+  }
+
+  /**
+   * Creates an RPC call handler that routes requests through the native bridge
+   * to bypass CSP restrictions in the WebView
+   */
+  private createRpcCallHandler(): RpcCallHandler {
+    return async (rpcUrl: string, payload: object): Promise<any> => {
+      console.log('[EthereumProvider] rpcCallHandler sending to native:', { rpcUrl, payload });
+      const result = await this.internalRequest({
+        method: 'rpcCall',
+        params: { rpcUrl, payload },
+      });
+
+      return result;
+    };
   }
 }
